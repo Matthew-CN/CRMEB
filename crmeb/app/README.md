@@ -11,6 +11,32 @@
 
 #### 3. 优化后的目录介绍
 
+## 目录结构
+
+```
+.
+├── adminapi/                 # 后台管理端API接口
+├── api/                      # 移动端API接口
+├── dao/                      # DAO层（数据访问对象）
+├── http/                     # HTTP中间件
+├── jobs/                     # 队列任务
+├── kefuapi/                  # 客服端API接口
+├── lang/                     # 语言包
+├── listener/                 # 事件监听器目录
+├── model/                    # Model层
+├── services/                 # Services层
+├── subscribes/               # 事件订阅
+├── AppService.php           # 应用服务类
+├── ExceptionHandle.php      # 异常处理器
+├── Request.php              # 封装Request类
+├── build.php                # 构建配置
+├── common.php               # 公共方法
+├── event.php                # 事件配置
+├── middleware.php           # 中间件配置
+├── provider.php             # 容器Provider定义文件
+└── service.php              # 服务配置
+```
+
 ##### app/
 - **核心目录**：存放应用程序的核心代码和资源。
 - **包含内容**：业务逻辑、控制器、模型、视图等。

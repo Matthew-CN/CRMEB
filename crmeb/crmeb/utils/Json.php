@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------
 // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
 // +----------------------------------------------------------------------
-// | Copyright (c) 2016~2023 https://www.crmeb.com All rights reserved.
+// | Copyright (c) 2016~2026 https://www.crmeb.com All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
 // +----------------------------------------------------------------------
@@ -39,14 +39,9 @@ class Json
     {
         $res = compact('status', 'msg');
 
-        if (!is_null($data))
-            $res['data'] = $data;
+        if (!is_null($data)) $res['data'] = $data;
 
-        if (is_numeric($res['msg'])) {
-            $res['code'] = $res['msg'];
-            $res['msg'] = getLang($res['msg'], $replace);
-        }
-
+        $res['msg'] = getLang($res['msg'], $replace);
 
         return Response::create($res, 'json', $this->code)->header($this->header);
     }
