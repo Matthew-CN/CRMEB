@@ -27,3 +27,6 @@
 /crmeb/public/uploads/
 /crmeb/runtime/.timer
 /crmeb/vendor/
+/crmeb/config/routine_private.key
+/crmeb/crmeb_backup.sql
+/crmeb/public/statics/download/

@@ -95,6 +95,12 @@ class CacheService
      */
     public static function clear(string $tag = 'crmeb')
     {
+        // file 驱动的 tag 列表通过非原子 read-modify-write 维护，
+        // 并发写入会导致部分 key 从 tag 列表中丢失，tag-based clear 无法删除这些 key。
+        // 因此 file 驱动直接清空整个缓存目录，确保不会残留脏数据。
+        if (Config::get('cache.default') == 'file') {
+            return Cache::clear();
+        }
         return Cache::tag($tag)->clear();
     }
 
