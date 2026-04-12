@@ -223,20 +223,31 @@ export default {
         });
     },
     // 分类
+    //getClass() {
+    //  categoryListApi(this.formValidate)
+    //    .then(async (res) => {
+    //      let data = res.data;
+    //      this.treeData = data;
+    //      let obj = {
+    //        id: 0,
+    //        title: '全部',
+    //      };
+    //      this.treeData.unshift(obj);
+    //    })
+    //    .catch((res) => {
+    //      this.$message.error(res.msg);
+    //    });
+    //},
     getClass() {
       categoryListApi(this.formValidate)
-        .then(async (res) => {
-          let data = res.data;
-          this.treeData = data;
-          let obj = {
-            id: 0,
-            title: '全部',
-          };
-          this.treeData.unshift(obj);
-        })
-        .catch((res) => {
-          this.$message.error(res.msg);
-        });
+     	.then((res) => {
+      		const list = Array.isArray(res?.data?.list) ? res.data.list : [];
+      		this.treeData = [{ id: 0, title: '全部' }, ...list];
+     		})
+    	.catch((err) => {
+      		const msg = err?.msg || err?.message || '分类加载失败';
+      		this.$message.error(msg);
+    	});
     },
     // 下拉树
     handleCheckChange(data) {
