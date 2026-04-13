@@ -247,10 +247,10 @@ class RoutineCIServices extends BaseServices
      */
     public function upload(string $version, string $desc = '', bool $isLive = false): array
     {
-        // 检查运行环境是否满足要求
+        set_time_limit(300);
+
         $this->checkEnvironment();
 
-        // 准备项目文件 (复制、替换配置)
         $projectPath = $this->prepareProject($isLive);
 
         // 构建 miniprogram-ci upload 命令
@@ -265,11 +265,13 @@ class RoutineCIServices extends BaseServices
         exec($command . ' 2>&1', $output, $returnCode);
 
         $outputStr = implode("\n", $output);
-        Log::info('miniprogram-ci upload output: ' . $outputStr);
+        Log::info('miniprogram-ci upload result: returnCode=' . $returnCode);
+
 
         // 检查执行结果，非零返回码表示失败
         if ($returnCode !== 0) {
-            throw new AdminException('上传失败: ' . $outputStr);
+            Log::error('miniprogram-ci upload failed: ' . $outputStr);
+            throw new AdminException('上传失败: ' . $this->extractErrorMessage($outputStr));
         }
 
         return [
@@ -301,7 +303,8 @@ class RoutineCIServices extends BaseServices
      */
     public function preview(string $pagePath = ''): array
     {
-        // 检查运行环境是否满足要求
+        set_time_limit(300);
+
         $this->checkEnvironment();
 
         // 准备项目文件
@@ -322,11 +325,12 @@ class RoutineCIServices extends BaseServices
         exec($command . ' 2>&1', $output, $returnCode);
 
         $outputStr = implode("\n", $output);
-        Log::info('miniprogram-ci preview output: ' . $outputStr);
+        Log::info('miniprogram-ci preview result: returnCode=' . $returnCode);
 
         // 检查执行结果
         if ($returnCode !== 0) {
-            throw new AdminException('预览失败: ' . $outputStr);
+            Log::error('miniprogram-ci preview failed: ' . $outputStr);
+            throw new AdminException('预览失败: ' . $this->extractErrorMessage($outputStr));
         }
 
         // 拼接二维码图片的访问 URL，添加时间戳防止缓存
@@ -396,11 +400,12 @@ class RoutineCIServices extends BaseServices
     {
         // 构建基本的 preview 命令
         $command = sprintf(
-            'miniprogram-ci preview --pp "%s" --pkp "%s" --appid "%s" --qrcode-format image --qrcode-output-dest "%s"',
-            $this->projectPath,    // 项目路径
-            $this->privateKeyPath, // 密钥文件路径
-            $this->appId,          // 小程序 AppId
-            $qrcodePath            // 二维码输出路径
+            'miniprogram-ci preview --pp "%s" --pkp "%s" --appid "%s" --uv "preview-%s" --qrcode-format image --qrcode-output-dest "%s"',
+            $this->projectPath,
+            $this->privateKeyPath,
+            $this->appId,
+            date('YmdHis'),
+            $qrcodePath
         );
 
         // 如果指定了预览页面，添加编译条件参数
@@ -564,5 +569,21 @@ class RoutineCIServices extends BaseServices
         // - 上传结果 (成功/失败)
         // - 命令输出日志
         return [];
+    }
+
+    /**
+     * 从 miniprogram-ci 输出中提取可读的错误信息
+     */
+    protected function extractErrorMessage(string $output): string
+    {
+        if (preg_match('/\[error\]\s*\d+\s*(.+)/i', $output, $m)) {
+            return trim($m[1]);
+        }
+        if (preg_match('/Error:\s*(.+)/i', $output, $m)) {
+            return trim($m[1]);
+        }
+        $lines = array_filter(explode("\n", $output), 'trim');
+        $last = end($lines);
+        return $last ?: '未知错误，请查看日志';
     }
 }
