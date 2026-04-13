@@ -247,6 +247,7 @@ class RoutineCIServices extends BaseServices
      */
     public function upload(string $version, string $desc = '', bool $isLive = false): array
     {
+        ignore_user_abort(true);
         set_time_limit(300);
 
         $this->checkEnvironment();
@@ -303,6 +304,7 @@ class RoutineCIServices extends BaseServices
      */
     public function preview(string $pagePath = ''): array
     {
+        ignore_user_abort(true);
         set_time_limit(300);
 
         $this->checkEnvironment();
