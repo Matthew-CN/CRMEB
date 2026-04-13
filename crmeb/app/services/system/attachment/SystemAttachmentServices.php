@@ -65,11 +65,9 @@ class SystemAttachmentServices extends BaseServices
         $list = $this->dao->getList($where, $page, $limit);
         $site_url = sys_config('site_url');
         foreach ($list as &$item) {
-            if ($site_url) {
-                $item['satt_dir'] = (strpos($item['satt_dir'], $site_url) !== false || strstr($item['satt_dir'], 'http') !== false) ? $item['satt_dir'] : $site_url . $item['satt_dir'];
-                $item['att_dir'] = (strpos($item['att_dir'], $site_url) !== false || strstr($item['att_dir'], 'http') !== false) ? $item['satt_dir'] : $site_url . $item['att_dir'];
-                $item['time'] = date('Y-m-d H:i:s', $item['time']);
-            }
+            $item['satt_dir'] = set_file_url($item['satt_dir'] ?? '', $site_url);
+            $item['att_dir'] = set_file_url($item['att_dir'] ?? '', $site_url);
+            $item['time'] = date('Y-m-d H:i:s', $item['time']);
         }
         $where['module_type'] = 1;
         $count = $this->dao->count($where);

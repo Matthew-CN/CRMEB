@@ -285,27 +285,76 @@ if (!function_exists('curl_file_exist')) {
 }
 if (!function_exists('set_file_url')) {
     /**
-     * 设置附加路径
-     * @param $url
-     * @return bool
+     * 将附件路径转为可访问的完整 URL。
+     * 对已是 http(s) 或 // 的地址：若主机与当前「网站地址」为同一站点（含 www 与非 www），
+     * 则统一为配置中的协议与域名，避免 HTTPS 后台加载 HTTP 资源被拦截，以及 www 不一致导致异常。
+     *
+     * @param string|array $image
+     * @param string $siteUrl
+     * @return string|array
      */
     function set_file_url($image, $siteUrl = '')
     {
-        if (!strlen(trim($siteUrl))) $siteUrl = sys_config('site_url');
-        if (!$image) return $image;
+        if (!strlen(trim((string) $siteUrl))) {
+            $siteUrl = (string) sys_config('site_url');
+        }
+        if (!$image) {
+            return $image;
+        }
+
+        $normalizeOne = static function ($url) use ($siteUrl) {
+            if (!is_string($url) || $url === '') {
+                return $url;
+            }
+            $url = str_replace('\\', '/', $url);
+            $siteUrl = trim((string) $siteUrl);
+
+            $head4 = substr($url, 0, 4);
+            $head2 = substr($url, 0, 2);
+            if ($head4 !== 'http' && $head2 !== '//') {
+                return $siteUrl . $url;
+            }
+
+            if ($siteUrl === '') {
+                return $url;
+            }
+
+            $siteParts = @parse_url(rtrim($siteUrl, '/'));
+            if (!$siteParts || empty($siteParts['scheme']) || empty($siteParts['host'])) {
+                return $url;
+            }
+
+            $toParse = ($head2 === '//' && $head4 !== 'http') ? ('http:' . $url) : $url;
+            $imgParts = @parse_url($toParse);
+            if (!$imgParts || empty($imgParts['host'])) {
+                return $url;
+            }
+
+            $siteHost = strtolower($siteParts['host']);
+            $imgHost = strtolower($imgParts['host']);
+            $sameHost = ($imgHost === $siteHost)
+                || ($imgHost === 'www.' . $siteHost)
+                || ($siteHost === 'www.' . $imgHost);
+            if (!$sameHost) {
+                return $url;
+            }
+
+            $path = ($imgParts['path'] ?? '') ?: '/';
+            $query = isset($imgParts['query']) ? '?' . $imgParts['query'] : '';
+            $fragment = isset($imgParts['fragment']) ? '#' . $imgParts['fragment'] : '';
+
+            return rtrim($siteUrl, '/') . $path . $query . $fragment;
+        };
+
         if (is_array($image)) {
             foreach ($image as &$item) {
-                $domainTop1 = substr($item, 0, 4);
-                $domainTop2 = substr($item, 0, 2);
-                if ($domainTop1 != 'http' && $domainTop2 != '//')
-                    $item = $siteUrl . str_replace('\\', '/', $item);
+                $item = $normalizeOne($item);
             }
+            unset($item);
         } else {
-            $domainTop1 = substr($image, 0, 4);
-            $domainTop2 = substr($image, 0, 2);
-            if ($domainTop1 != 'http' && $domainTop2 != '//')
-                $image = $siteUrl . str_replace('\\', '/', $image);
+            $image = $normalizeOne($image);
         }
+
         return $image;
     }
 }
