@@ -158,8 +158,11 @@ class DiyServices extends BaseServices
         $info = $info ? $info->toArray() : [];
 
         if ($info) {
+            if (!empty($info['bg_pic'])) {
+                $info['bg_pic'] = set_file_url($info['bg_pic']);
+            }
             if ($info['value']) {
-                $info['value'] = json_decode($info['value'], true);
+                $info['value'] = set_file_url_deep(json_decode($info['value'], true));
                 if ($info['is_diy']) {
                     foreach ($info['value'] as &$item) {
                         if ($item['name'] == 'customerService') {

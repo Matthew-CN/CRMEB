@@ -318,12 +318,32 @@ class StoreCategoryServices extends BaseServices
     {
         [$page, $limit] = $this->getPageValue();
         if ($limit) {
-            return $this->dao->getALlByIndex($where, 'id,cate_name,pid,pic', $limit);
+            $list = $this->dao->getALlByIndex($where, 'id,cate_name,pid,pic', $limit);
         } else {
-            return CacheService::remember('CATEGORY', function () {
+            $list = CacheService::remember('CATEGORY', function () {
                 return $this->dao->getCategory();
             });
         }
+        return $this->setCategoryFileUrl($list);
+    }
+
+    /**
+     * 递归处理分类列表中的图片路径
+     */
+    protected function setCategoryFileUrl(array $list): array
+    {
+        foreach ($list as &$item) {
+            if (!empty($item['pic'])) {
+                $item['pic'] = set_file_url($item['pic']);
+            }
+            if (!empty($item['big_pic'])) {
+                $item['big_pic'] = set_file_url($item['big_pic']);
+            }
+            if (!empty($item['children'])) {
+                $item['children'] = $this->setCategoryFileUrl($item['children']);
+            }
+        }
+        return $list;
     }
 
     /**

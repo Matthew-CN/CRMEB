@@ -359,6 +359,39 @@ if (!function_exists('set_file_url')) {
     }
 }
 
+if (!function_exists('set_file_url_deep')) {
+    /**
+     * 递归遍历数组/JSON 数据，将所有相对资源路径转为完整 URL。
+     * 识别以 /uploads/ 或 /statics/ 开头的字符串值并拼接 site_url。
+     *
+     * @param mixed $data 待处理的数据（通常是 json_decode 后的数组）
+     * @param string $siteUrl 站点URL，为空则自动读取 sys_config('site_url')
+     * @return mixed
+     */
+    function set_file_url_deep($data, string $siteUrl = '')
+    {
+        if (!strlen(trim($siteUrl))) {
+            $siteUrl = rtrim((string)sys_config('site_url'), '/');
+        }
+        if ($siteUrl === '') {
+            return $data;
+        }
+        if (is_string($data)) {
+            if ($data !== '' && $data[0] === '/' && preg_match('#^/(uploads|statics|public)/#', $data)) {
+                return $siteUrl . $data;
+            }
+            return $data;
+        }
+        if (is_array($data)) {
+            foreach ($data as $k => &$v) {
+                $v = set_file_url_deep($v, $siteUrl);
+            }
+            unset($v);
+        }
+        return $data;
+    }
+}
+
 if (!function_exists('set_http_type')) {
     /**
      * 修改 https 和 http

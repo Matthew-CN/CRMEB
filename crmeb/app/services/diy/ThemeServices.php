@@ -150,13 +150,13 @@ class ThemeServices extends BaseServices
         if (!$info) throw new AdminException('数据不存在');
         $info = $info->toArray();
         if ($type == 'home') {
-            return json_decode($info['home_data'], true) ?? [];
+            return set_file_url_deep(json_decode($info['home_data'], true) ?? []);
         } elseif ($type == 'category') {
             return ['status' => $info['category_data'] ?? 1];
         } elseif ($type == 'detail') {
-            return json_decode($info['detail_data'], true) ?? [];
+            return set_file_url_deep(json_decode($info['detail_data'], true) ?? []);
         } elseif ($type == 'user') {
-            return json_decode($info['user_data'], true) ?? [];
+            return set_file_url_deep(json_decode($info['user_data'], true) ?? []);
         } elseif ($type == 'theme') {
             if ($info['theme_data'] == '' || $info['theme_data'] == null || $info['theme_data'] == 'null') {
                 $info['theme_data'] = '{"theme_color":"#E93323","gradient_color":"#FF7931","sub_color":"#FE960F","light_color":"rgba(233, 51, 35, 0.1)"}';
@@ -651,11 +651,9 @@ class ThemeServices extends BaseServices
         if ($value) {
             // 将 JSON 字符串解码为数组
             $value = json_decode($value, true);
-            // 遍历首页组件，查找名称为 pagefoot 的底部导航组件
             foreach ($value['value'] as $item) {
                 if (isset($item['name']) && strtolower($item['name']) === 'pagefoot') {
-                    // 找到后赋值并终止循环
-                    $navigation = $item;
+                    $navigation = set_file_url_deep($item);
                     break;
                 }
             }
